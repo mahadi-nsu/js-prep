@@ -1,6 +1,6 @@
-# JavaScript Interview Preparation Guide
+# JavaScript Preparation Guide
 
-A comprehensive collection of JavaScript concepts, cheatsheets, and code snippets for interview preparation.
+A comprehensive collection of JavaScript concepts, cheatsheets, and code snippets for JS preparation.
 
 ## Table of Contents
 
@@ -157,7 +157,7 @@ function duplicate() {
 </details>
 
 <details>
-<summary><strong>🎯 Interview Questions & Answers</strong></summary>
+<summary><strong>🎯 Tricky Questions & Answers</strong></summary>
 
 #### Basic Hoisting Questions
 
@@ -328,7 +328,7 @@ let arrowFunc = () => "I'm an arrow function";
 
 **A:** `ReferenceError: Cannot access 'arrowFunc' before initialization` (arrow functions are not hoisted)
 
-#### Tricky Interview Questions
+#### Tricky Tricky Questions
 
 **Q: What will this output?**
 
