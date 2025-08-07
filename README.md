@@ -11,11 +11,15 @@ A comprehensive collection of JavaScript concepts, cheatsheets, and code snippet
 
 ## 1. Hoisting
 
-### 📚 Concept Overview
+<details>
+<summary><strong>📚 Concept Overview</strong></summary>
 
 Hoisting is a JavaScript mechanism where variable and function declarations are moved to the top of their scope during compilation, before the code actually runs.
 
-### 🎯 Key Points
+</details>
+
+<details>
+<summary><strong>🎯 Key Points</strong></summary>
 
 - **Function declarations**: Fully hoisted (both declaration and definition)
 - **var variables**: Hoisted but initialized to `undefined`
@@ -23,7 +27,10 @@ Hoisting is a JavaScript mechanism where variable and function declarations are 
 - **Function expressions**: Not hoisted
 - **Arrow functions**: Not hoisted
 
-### 📋 Cheatsheet
+</details>
+
+<details>
+<summary><strong>📋 Cheatsheet</strong></summary>
 
 | Declaration Type     | Hoisted?     | Initial Value | Accessible Before Declaration? |
 | -------------------- | ------------ | ------------- | ------------------------------ |
@@ -34,7 +41,10 @@ Hoisting is a JavaScript mechanism where variable and function declarations are 
 | Function Expression  | ❌ No        | -             | ❌ No                          |
 | Arrow Function       | ❌ No        | -             | ❌ No                          |
 
-### 💡 Code Snippets
+</details>
+
+<details>
+<summary><strong>💡 Code Snippets</strong></summary>
 
 #### Basic Hoisting Examples
 
@@ -124,7 +134,10 @@ function duplicate() {
 }
 ```
 
-### 🚀 Best Practices
+</details>
+
+<details>
+<summary><strong>🚀 Best Practices</strong></summary>
 
 ✅ **Do's:**
 
@@ -141,7 +154,10 @@ function duplicate() {
 - Don't rely on hoisting for readability
 - Don't create variable shadowing issues
 
-### 🎯 Interview Questions & Answers
+</details>
+
+<details>
+<summary><strong>🎯 Interview Questions & Answers</strong></summary>
 
 #### Basic Hoisting Questions
 
@@ -410,7 +426,10 @@ for (let i = 0; i < 3; i++) {
 **Q: Explain variable shadowing in the context of hoisting**
 **A:** When a local variable has the same name as a global variable, the local declaration is hoisted, creating a "shadow" that prevents access to the global variable within that scope.
 
-### 🔍 Complete Hoisting Flow
+</details>
+
+<details>
+<summary><strong>🔍 Complete Hoisting Flow</strong></summary>
 
 1. JavaScript engine scans the code
 2. Hoists function declarations to top
@@ -418,5 +437,7 @@ for (let i = 0; i < 3; i++) {
 4. Initializes `var` to `undefined`
 5. Leaves `let`/`const` in TDZ
 6. Executes code line by line
+
+</details>
 
 ---
