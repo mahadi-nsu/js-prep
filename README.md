@@ -612,6 +612,58 @@ for (let j = 0; j < 3; j++) setTimeout(() => console.log(j)); // 0, 1, 2
 </details>
 
 <details>
+<summary><strong>➕ More Tricky Variable Questions</strong></summary>
+
+**Q: What’s wrong here?**
+
+```javascript
+const obj = { a: 1 };
+obj = { a: 2 };
+```
+
+**A:** `TypeError: Assignment to constant variable.` (const prevents rebinding; the object itself could still be mutated)
+
+**Q: Does this throw an error?**
+
+```javascript
+const obj = { a: 1 };
+obj.a = 100;
+console.log(obj.a);
+```
+
+**A:** `100` (const means the binding is constant, not the contents of the object)
+
+**Q: Can you redeclare a variable?**
+
+```javascript
+let a = 10;
+let a = 20;
+```
+
+**A:** `SyntaxError: Identifier 'a' has already been declared` (cannot redeclare `let`/`const` in the same scope)
+
+```javascript
+var b = 10;
+var b = 20;
+console.log(b);
+```
+
+**A:** `20` (`var` allows redeclaration in the same scope)
+
+**Q: Guess the output?**
+
+```javascript
+(function () {
+  console.log(typeof a);
+  var a = 10;
+})();
+```
+
+**A:** `'undefined'` (`var a` is hoisted, but the value assignment is not)
+
+</details>
+
+<details>
 <summary><strong>🔍 Deep Dive</strong></summary>
 
 - In scripts, `var name = ...` creates `globalThis.name`; `let/const` do not
