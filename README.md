@@ -5,7 +5,7 @@ A comprehensive collection of JavaScript concepts, cheatsheets, and code snippet
 ## Table of Contents
 
 1. [Hoisting](#hoisting)
-2. [More topics coming soon...](#)
+2. [Variables](#variables)
 
 ---
 
@@ -376,6 +376,53 @@ console.log(duplicate());
 
 **A:** `"Second"` (second function declaration overwrites the first)
 
+**Q: What’s wrong here?**
+
+```javascript
+const obj = { a: 1 };
+obj = { a: 2 };
+```
+
+**A:** `TypeError: Assignment to constant variable.` (const prevents rebinding; object can still mutate)
+
+**Q: Does this throw an error?**
+
+```javascript
+const obj = { a: 1 };
+obj.a = 100;
+console.log(obj.a);
+```
+
+**A:** `100` (const protects the binding, not the object's contents)
+
+**Q: Can you redeclare a variable?**
+
+```javascript
+let a = 10;
+let a = 20;
+```
+
+**A:** `SyntaxError: Identifier 'a' has already been declared` (cannot redeclare let/const in the same scope)
+
+```javascript
+var b = 10;
+var b = 20;
+console.log(b);
+```
+
+**A:** `20` (var allows redeclaration in the same scope)
+
+**Q: Guess the output?**
+
+```javascript
+(function () {
+  console.log(typeof a);
+  var a = 10;
+})();
+```
+
+**A:** `'undefined'` (`var a` is hoisted, but value assignment isn't; typeof sees undefined)
+
 #### Code Execution Order Questions
 
 **Q: What will this output?**
@@ -441,3 +488,135 @@ for (let i = 0; i < 3; i++) {
 </details>
 
 ---
+
+## 2. Variables
+
+<details>
+<summary><strong>📚 Concept Overview</strong></summary>
+
+JavaScript variables are bindings to values. The three declaration forms are `var`, `let`, and `const`, each with different scoping and hoisting behaviors. Prefer `const` by default, use `let` for reassignments, and avoid `var` in modern code.
+
+</details>
+
+<details>
+<summary><strong>🎯 Key Points</strong></summary>
+
+- **var**: Function-scoped, hoisted with `undefined`, re-declarable, re-assignable, can attach to `globalThis` in scripts
+- **let**: Block-scoped, hoisted but in TDZ, not re-declarable in same scope, re-assignable
+- **const**: Block-scoped, hoisted but in TDZ, not re-declarable, not re-assignable (binding is constant)
+- **Shadowing**: Inner binding with same name hides outer binding
+- **Modules vs scripts**: Top-level `var` attaches to global only in scripts, not ES modules; top-level `this` differs
+
+</details>
+
+<details>
+<summary><strong>📋 Cheatsheet</strong></summary>
+
+| Feature                     | var                     | let       | const             |
+| --------------------------- | ----------------------- | --------- | ----------------- |
+| Scope                       | Function                | Block     | Block             |
+| Hoisted?                    | Yes (init to undefined) | Yes (TDZ) | Yes (TDZ)         |
+| Re-declare same scope       | Yes                     | No        | No                |
+| Re-assign                   | Yes                     | Yes       | No (binding only) |
+| Attaches to global (script) | Yes                     | No        | No                |
+
+</details>
+
+<details>
+<summary><strong>💡 Code Snippets</strong></summary>
+
+#### Declarations and Reassignment
+
+```javascript
+var a = 1;
+a = 2;
+var a = 3; // OK (but avoid)
+let b = 1;
+b = 2; // OK
+// let b = 3;                  // ❌ SyntaxError (same scope)
+const c = 1; // c = 2;         // ❌ TypeError (rebinding)
+```
+
+#### const with Objects/Arrays
+
+```javascript
+const user = { name: "A" };
+user.name = "B"; // ✅ allowed (mutating object)
+// user = {};      // ❌ TypeError (rebinding)
+```
+
+#### Shadowing
+
+```javascript
+let x = "outer";
+{
+  let x = "inner";
+  console.log(x); // 'inner'
+}
+console.log(x); // 'outer'
+```
+
+</details>
+
+<details>
+<summary><strong>🚀 Best Practices</strong></summary>
+
+- Prefer `const`; use `let` when reassignment is required
+- Avoid `var` in modern code
+- Declare variables in the narrowest scope close to first use
+- Initialize on declaration to avoid TDZ surprises
+- Avoid accidental globals; use modules or `'use strict'`
+
+</details>
+
+<details>
+<summary><strong>🎯 Tricky Questions & Answers</strong></summary>
+
+#### Hoisting and TDZ in Variables
+
+```javascript
+console.log(a); // undefined (var hoisted)
+var a = 1;
+
+// console.log(b); // ❌ ReferenceError (TDZ)
+let b = 2;
+
+// console.log(c); // ❌ ReferenceError (TDZ)
+const c = 3;
+```
+
+#### Scope and Shadowing
+
+```javascript
+var g = "global";
+function demo() {
+  console.log(g); // undefined (local var g is hoisted and shadows global)
+  var g = "local";
+  console.log(g); // 'local'
+}
+demo();
+```
+
+#### Loops, Closures, Scope, and Hoisting
+
+```javascript
+for (var i = 0; i < 3; i++) setTimeout(() => console.log(i)); // 3, 3, 3
+for (let j = 0; j < 3; j++) setTimeout(() => console.log(j)); // 0, 1, 2
+```
+
+- Explanation:
+  - With `var`, there is a single function-scoped binding `i`. All scheduled callbacks run after the loop ends, reading the same final value (3).
+  - With `let`, each iteration creates a new block-scoped binding `j`. Each callback closes over its own `j` value (0, 1, 2).
+  - Hoisting: `var i` is hoisted to the function scope and initialized to `undefined` once; `let j` is hoisted per-iteration but remains in the TDZ until the iteration body begins.
+
+</details>
+
+<details>
+<summary><strong>🔍 Deep Dive</strong></summary>
+
+- In scripts, `var name = ...` creates `globalThis.name`; `let/const` do not
+- In ES modules, top-level bindings do not attach to `globalThis`, and top-level `this` is `undefined`
+- Loop `let` semantics create a fresh environment record per iteration
+- Variables remain alive as long as referenced (e.g., by closures)
+
+</details>
