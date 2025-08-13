@@ -6,6 +6,7 @@ A comprehensive collection of JavaScript concepts, cheatsheets, and code snippet
 
 1. [Hoisting](#hoisting)
 2. [Variables](#variables)
+3. [Objects](#objects)
 
 ---
 
@@ -672,3 +673,733 @@ console.log(b);
 - Variables remain alive as long as referenced (e.g., by closures)
 
 </details>
+
+---
+
+## 3. Objects
+
+<details>
+<summary><strong>📚 Concept Overview</strong></summary>
+
+Objects are mutable key–value collections with a prototype chain. Keys are strings or symbols. Property behavior is controlled by descriptors (writable, enumerable, configurable) and accessors (get/set). Prototypes enable inheritance and method sharing across instances.
+
+</details>
+
+<details>
+<summary><strong>🎯 Key Points</strong></summary>
+
+- **Creation**: literals `{}`, `Object.create(proto)`, constructors, classes (prototype sugar)
+- **Keys**: strings or symbols; numeric keys are coerced to strings
+- **Descriptors**: data vs accessor; `writable`, `enumerable`, `configurable`
+- **Prototype**: own vs inherited; use `Object.hasOwn` for own checks
+- **this**: depends on call-site; arrow functions capture lexical `this`
+- **Iteration**: `Object.keys/values/entries`, `for...in` (includes inherited), `Reflect.ownKeys`
+- **Copying**: shallow `{...obj}` / `Object.assign`; deep `structuredClone`
+- **Immutability**: `Object.freeze`/`seal`/`preventExtensions` (all shallow)
+- **Objects vs Map**: Map for non-string keys, frequent add/remove, stable iteration
+
+</details>
+
+<details>
+<summary><strong>📋 Cheatsheet</strong></summary>
+
+| Topic               | Recommended API                                   | Notes                                     |
+| ------------------- | ------------------------------------------------- | ----------------------------------------- |
+| Own property check  | `Object.hasOwn(obj, key)`                         | Prefer over `hasOwnProperty` on instances |
+| Get descriptor      | `Object.getOwnPropertyDescriptor(obj, key)`       | Distinguish data vs accessor              |
+| Define property     | `Object.defineProperty(obj, key, desc)`           | Control writability/enumerability         |
+| Create with proto   | `Object.create(proto, descriptors?)`              | Explicit prototype                        |
+| Get/Set prototype   | `Object.getPrototypeOf` / `Object.setPrototypeOf` | Avoid set in hot paths                    |
+| Keys/values/entries | `Object.keys/values/entries(obj)`                 | Own, enumerable string keys               |
+| All own keys        | `Reflect.ownKeys(obj)`                            | Includes symbols/non-enumerables          |
+| Shallow copy        | `{ ...obj }`, `Object.assign({}, obj)`            | Own enumerable string+symbol              |
+| Deep clone          | `structuredClone(obj)`                            | Preserves Dates, Maps, Sets               |
+| Freeze/Seal         | `Object.freeze/Seal(obj)`                         | Shallow only                              |
+
+</details>
+
+<details>
+<summary><strong>💡 Code Snippets</strong></summary>
+
+#### Creating Objects
+
+```javascript
+const user = { name: "Ada", age: 36 };
+const bare = Object.create(null);
+const proto = {
+  greet() {
+    return `hi ${this.name}`;
+  },
+};
+const child = Object.create(proto, {
+  name: { value: "Lin", enumerable: true, writable: true },
+});
+
+class Person {
+  constructor(name) {
+    this.name = name;
+  }
+  say() {
+    return `Hello ${this.name}`;
+  }
+}
+```
+
+#### Descriptors (data vs accessor)
+
+```javascript
+const book = {};
+Object.defineProperty(book, "title", {
+  value: "JS Deep",
+  writable: false,
+  enumerable: true,
+  configurable: true,
+});
+Object.defineProperty(book, "upperTitle", {
+  get() {
+    return this.title.toUpperCase();
+  },
+  enumerable: true,
+});
+```
+
+#### Own vs Inherited
+
+```javascript
+const base = { a: 1 };
+const obj = Object.create(base);
+obj.b = 2;
+Object.keys(obj); // ["b"]
+"a" in obj; // true
+Object.hasOwn(obj, "a"); // false
+```
+
+#### this and binding
+
+```javascript
+const counter = {
+  n: 0,
+  inc() {
+    this.n++;
+  },
+};
+const f = counter.inc;
+// f(); // wrong: this is undefined/global
+f.call(counter); // correct
+const bound = counter.inc.bind(counter);
+bound();
+```
+
+#### Iteration APIs
+
+```javascript
+const o = Object.create(
+  { inherited: 1 },
+  {
+    a: { value: 1, enumerable: true },
+    [Symbol("s")]: { value: 2, enumerable: true },
+  }
+);
+Object.keys(o); // ["a"]
+Object.values(o); // [1]
+Object.entries(o); // [["a",1]]
+Reflect.ownKeys(o); // ["a", Symbol(s)]
+for (const k in o) {
+  /* includes inherited enumerable keys */
+}
+```
+
+#### Copying & Deep Clone
+
+```javascript
+const shallow = { ...o };
+const deep = structuredClone({ d: new Date(), m: new Map([[1, "a"]]) });
+```
+
+#### Freeze vs Seal (shallow)
+
+```javascript
+const fz = Object.freeze({ a: 1, nested: { x: 1 } });
+// fz.a = 2; // no-op / error in strict
+fz.nested.x = 2; // allowed (freeze is shallow)
+```
+
+#### Objects vs Map
+
+```javascript
+const m = new Map();
+const k = {};
+m.set(k, 123);
+m.get(k); // 123
+```
+
+#### To-Primitive
+
+```javascript
+const price = {
+  amount: 10,
+  [Symbol.toPrimitive](hint) {
+    return hint === "string" ? `$${this.amount}` : this.amount;
+  },
+};
+String(price); // "$10"
++price; // 10
+```
+
+#### Proxy + Reflect
+
+```javascript
+const target = { a: 1 };
+const p = new Proxy(target, {
+  get(t, k, r) {
+    return Reflect.get(t, k, r);
+  },
+  set(t, k, v, r) {
+    if (k === "a" && v < 0) return false;
+    return Reflect.set(t, k, v, r);
+  },
+});
+p.a;
+p.a = -1; // fails (or throws in strict mode)
+```
+
+</details>
+
+<details>
+<summary><strong>🚀 Best Practices</strong></summary>
+
+- Prefer literals and `Object.create` for explicit prototypes
+- Use `Object.hasOwn` for own checks; avoid `hasOwnProperty` from instances
+- Avoid mutating `__proto__`; do not set prototypes dynamically in hot paths
+- Treat `Object.freeze`/`seal` as shallow; document immutability policy
+- Prefer Map when keys aren't strings/symbols or when frequent add/remove is needed
+
+</details>
+
+<details>
+<summary><strong>🎯 Tricky Questions & Answers</strong></summary>
+
+#### Basic Object Questions
+
+**Q: What will this output?**
+
+```javascript
+const obj = { a: 1 };
+console.log(obj.b);
+```
+
+**A:** `undefined` (accessing non-existent property returns undefined)
+
+**Q: What will this output?**
+
+```javascript
+const obj = { a: 1 };
+console.log("a" in obj);
+console.log(Object.hasOwn(obj, "a"));
+```
+
+**A:** Both `true` (property exists and is own)
+
+#### Enumerable vs Own vs Inherited
+
+**Q: What will this output?**
+
+```javascript
+const base = { a: 1 };
+const obj = Object.create(base, { b: { value: 2, enumerable: true } });
+console.log(Object.keys(obj));
+console.log("a" in obj);
+console.log(Object.hasOwn(obj, "a"));
+```
+
+**A:** `["b"]`, `true`, `false` (keys lists own enumerable only; `in` checks prototype chain; `hasOwn` checks only own)
+
+**Q: What will this output?**
+
+```javascript
+const o = {};
+Object.defineProperty(o, "x", { value: 1, enumerable: false });
+console.log(Object.keys(o));
+console.log("x" in o);
+```
+
+**A:** `[]`, `true` (non-enumerable properties are hidden from keys but still exist)
+
+#### Getter/Setter Behavior
+
+**Q: What will this output?**
+
+```javascript
+const src = {
+  get x() {
+    return Math.random();
+  },
+};
+const a = Object.assign({}, src);
+const b = { ...src };
+console.log(typeof a.x);
+console.log(typeof b.x);
+```
+
+**A:** Both `'number'` (getters are materialized as values during copy)
+
+**Q: What will this output?**
+
+```javascript
+const obj = {
+  get x() {
+    return this._x;
+  },
+  set x(val) {
+    this._x = val * 2;
+  },
+};
+obj.x = 5;
+console.log(obj.x);
+```
+
+**A:** `10` (setter multiplies by 2, getter returns stored value)
+
+#### this Binding Issues
+
+**Q: What will this output?**
+
+```javascript
+const obj = {
+  n: 0,
+  inc() {
+    this.n++;
+  },
+};
+const inc = obj.inc;
+inc();
+console.log(obj.n);
+```
+
+**A:** `0` (this becomes undefined/global, doesn't affect obj.n)
+
+**Q: What will this output?**
+
+```javascript
+const obj = {
+  n: 0,
+  inc: () => {
+    this.n++;
+  },
+};
+obj.inc();
+console.log(obj.n);
+```
+
+**A:** `0` (arrow function captures lexical this, not obj)
+
+#### Symbol Keys and Enumeration
+
+**Q: What will this output?**
+
+```javascript
+const S = Symbol("s");
+const o = { [S]: 1, a: 2 };
+console.log(Object.keys(o));
+console.log(Reflect.ownKeys(o));
+```
+
+**A:** `["a"]`, `["a", Symbol(s)]` (keys excludes symbols, ownKeys includes them)
+
+**Q: What will this output?**
+
+```javascript
+const sym1 = Symbol("a");
+const sym2 = Symbol("a");
+const obj = { [sym1]: 1, [sym2]: 2 };
+console.log(obj[sym1]);
+console.log(obj[sym2]);
+```
+
+**A:** `1`, `2` (symbols are unique even with same description)
+
+#### Object vs Map Key Behavior
+
+**Q: What will this output?**
+
+```javascript
+const obj = {};
+const k1 = {};
+const k2 = {};
+obj[k1] = 1;
+obj[k2] = 2;
+console.log(obj["[object Object]"]);
+```
+
+**A:** `2` (objects are coerced to string "[object Object]", last write wins)
+
+**Q: What will this output?**
+
+```javascript
+const map = new Map();
+const k1 = {};
+const k2 = {};
+map.set(k1, 1);
+map.set(k2, 2);
+console.log(map.get(k1));
+console.log(map.get(k2));
+```
+
+**A:** `1`, `2` (Map preserves object identity)
+
+#### Freeze and Immutability
+
+**Q: What will this output?**
+
+```javascript
+const frozen = Object.freeze({ nested: { a: 1 } });
+frozen.nested.a = 2;
+console.log(frozen.nested.a);
+```
+
+**A:** `2` (freeze is shallow, nested objects can still be mutated)
+
+**Q: What will this output?**
+
+```javascript
+const sealed = Object.seal({ a: 1 });
+sealed.a = 2;
+sealed.b = 3;
+console.log(sealed.a);
+console.log(sealed.b);
+```
+
+**A:** `2`, `undefined` (seal allows modifying existing properties, not adding new ones)
+
+#### To-Primitive Conversion
+
+**Q: What will this output?**
+
+```javascript
+const x = {
+  valueOf() {
+    return 7;
+  },
+  toString() {
+    return "obj";
+  },
+};
+console.log(x + 1);
+console.log(String(x));
+```
+
+**A:** `8`, `"obj"` (valueOf for math, toString for string context)
+
+**Q: What will this output?**
+
+```javascript
+const obj = {
+  [Symbol.toPrimitive](hint) {
+    return hint === "string" ? "str" : 42;
+  },
+};
+console.log(obj + 1);
+console.log(String(obj));
+```
+
+**A:** `43`, `"str"` (Symbol.toPrimitive takes precedence over valueOf/toString)
+
+#### DefineProperty vs Direct Assignment
+
+**Q: What will this output?**
+
+```javascript
+const o = {};
+Object.defineProperty(o, "a", { value: 1, writable: false });
+o.a = 2;
+console.log(o.a);
+```
+
+**A:** `1` (non-writable property cannot be changed)
+
+**Q: What will this output?**
+
+```javascript
+const o = {};
+Object.defineProperty(o, "a", { value: 1, configurable: false });
+delete o.a;
+console.log(o.a);
+```
+
+**A:** `1` (non-configurable property cannot be deleted)
+
+#### **proto** and Prototype Chain
+
+**Q: What will this output?**
+
+```javascript
+const dict = Object.create(null);
+console.log(dict.hasOwnProperty);
+console.log(Object.hasOwn(dict, "x"));
+```
+
+**A:** `undefined`, `false` (null prototype objects lack Object.prototype methods)
+
+**Q: What will this output?**
+
+```javascript
+const obj = { a: 1 };
+const child = Object.create(obj);
+child.a = 2;
+delete child.a;
+console.log(child.a);
+```
+
+**A:** `1` (deleting own property reveals inherited one)
+
+#### Property Order Rules
+
+**Q: What will this output?**
+
+```javascript
+const o = { 2: "b", 1: "a", x: 1, y: 2 };
+console.log(Object.keys(o));
+```
+
+**A:** `["1","2","x","y"]` (integer-like keys first in ascending order, then strings in insertion order)
+
+**Q: What will this output?**
+
+```javascript
+const o = { x: 1, 1: "a", y: 2, 2: "b" };
+console.log(Object.keys(o));
+```
+
+**A:** `["1","2","x","y"]` (numeric keys always come first)
+
+#### JSON Serialization Quirks
+
+**Q: What will this output?**
+
+```javascript
+console.log(JSON.stringify({ a: 1, b: undefined, c: Symbol() }));
+```
+
+**A:** `{"a":1}` (undefined and symbols are dropped)
+
+**Q: What will this output?**
+
+```javascript
+console.log(JSON.stringify([undefined, null, 1]));
+```
+
+**A:** `[null,null,1]` (undefined becomes null in arrays)
+
+**Q: What will this output?**
+
+```javascript
+const obj = {
+  toJSON() {
+    return { custom: true };
+  },
+};
+console.log(JSON.stringify(obj));
+```
+
+**A:** `{"custom":true}` (toJSON method customizes serialization)
+
+#### Spread and Object.assign Behavior
+
+**Q: What will this output?**
+
+```javascript
+const base = {};
+Object.defineProperty(base, "hidden", { value: 1, enumerable: false });
+console.log({ ...base }.hidden);
+```
+
+**A:** `undefined` (spread only copies enumerable properties)
+
+**Q: What will this output?**
+
+```javascript
+const target = { a: 1 };
+const source = { a: 2, b: 3 };
+Object.assign(target, source);
+console.log(target);
+```
+
+**A:** `{a: 2, b: 3}` (Object.assign mutates target and returns it)
+
+#### Proxy and Reflect
+
+**Q: What will this output?**
+
+```javascript
+const target = { a: 1 };
+const proxy = new Proxy(target, {
+  get(t, k, r) {
+    return Reflect.get(t, k, r) * 2;
+  },
+});
+console.log(proxy.a);
+```
+
+**A:** `2` (proxy intercepts get and doubles the value)
+
+**Q: What will this output?**
+
+```javascript
+const target = { a: 1 };
+const proxy = new Proxy(target, {
+  set(t, k, v, r) {
+    if (v < 0) return false;
+    return Reflect.set(t, k, v, r);
+  },
+});
+proxy.a = -1;
+console.log(proxy.a);
+```
+
+**A:** `1` (setter rejects negative values, original value unchanged)
+
+#### Deep Clone vs Shallow Copy
+
+**Q: What will this output?**
+
+```javascript
+const original = { a: 1, nested: { b: 2 } };
+const shallow = { ...original };
+const deep = structuredClone(original);
+original.nested.b = 3;
+console.log(shallow.nested.b);
+console.log(deep.nested.b);
+```
+
+**A:** `3`, `2` (shallow copy shares nested objects, deep clone doesn't)
+
+**Q: What will this output?**
+
+```javascript
+const obj = { func: () => console.log("hi") };
+const cloned = structuredClone(obj);
+console.log(typeof cloned.func);
+```
+
+**A:** `'undefined'` (structuredClone cannot clone functions)
+
+#### Optional Chaining and Nullish Coalescing
+
+**Q: What will this output?**
+
+```javascript
+const obj = { a: { b: { c: 1 } } };
+console.log(obj?.a?.b?.c);
+console.log(obj?.x?.y);
+```
+
+**A:** `1`, `undefined` (optional chaining safely accesses nested properties)
+
+**Q: What will this output?**
+
+```javascript
+const obj = { a: 0, b: null, c: undefined };
+console.log(obj.a ?? "default");
+console.log(obj.b ?? "default");
+console.log(obj.c ?? "default");
+```
+
+**A:** `0`, `"default"`, `"default"` (nullish coalescing only uses default for null/undefined)
+
+#### Object Equality and References
+
+**Q: What will this output?**
+
+```javascript
+const obj1 = { a: 1 };
+const obj2 = { a: 1 };
+console.log(obj1 === obj2);
+console.log(JSON.stringify(obj1) === JSON.stringify(obj2));
+```
+
+**A:** `false`, `true` (objects compared by reference, not value)
+
+**Q: What will this output?**
+
+```javascript
+const obj = { a: 1 };
+const copy = obj;
+copy.a = 2;
+console.log(obj.a);
+```
+
+**A:** `2` (copy and obj reference the same object)
+
+#### Class Fields and Methods
+
+**Q: What will this output?**
+
+```javascript
+class Example {
+  field = 1;
+  constructor() {
+    this.field = 2;
+  }
+}
+const e = new Example();
+console.log(e.field);
+```
+
+**A:** `2` (constructor assignment overwrites field initialization)
+
+**Q: What will this output?**
+
+```javascript
+class Example {
+  #private = 1;
+  getPrivate() {
+    return this.#private;
+  }
+}
+const e = new Example();
+console.log(e.getPrivate());
+console.log(e.#private);
+```
+
+**A:** `1`, `SyntaxError` (private fields are accessible within class, not outside)
+
+#### Advanced Prototype Chain
+
+**Q: What will this output?**
+
+```javascript
+const proto = { a: 1 };
+const obj = Object.create(proto);
+proto.a = 2;
+console.log(obj.a);
+```
+
+**A:** `2` (prototype changes affect all objects inheriting from it)
+
+**Q: What will this output?**
+
+```javascript
+const obj = {};
+Object.setPrototypeOf(obj, { a: 1 });
+console.log(obj.a);
+```
+
+**A:** `1` (setPrototypeOf changes the prototype chain)
+
+</details>
+
+<details>
+<summary><strong>🔍 Deep Dive</strong></summary>
+
+- **Property order**: Integer-like keys (ascending) → string keys (insertion order) → symbols
+- **Performance**: Prefer `Object.create` with desired prototype over `Object.setPrototypeOf` in hot paths
+- **Proxy invariants**: Must respect object invariants; use `Reflect` to preserve default semantics
+- **structuredClone limitations**: Cannot clone functions, DOM nodes, or objects with circular references
+- **JSON.stringify behavior**: Drops functions, symbols, undefined; converts undefined to null in arrays
+- **Object equality**: Use `Object.is` for special cases (NaN, ±0); `===` for reference equality
+- **Private fields**: Truly private, not accessible via bracket notation or reflection
+- **Class fields**: Initialize before constructor runs; can be overridden in constructor
+
+</details>
+
+---
