@@ -1403,3 +1403,714 @@ console.log(obj.a);
 </details>
 
 ---
+
+## 4. Exports & Imports
+
+<details>
+<summary><strong>📚 Concept Overview</strong></summary>
+
+JavaScript modules provide a way to organize and share code between files. ES Modules (ESM) use `import`/`export` statements, while CommonJS uses `require()`/`module.exports`. Named exports allow multiple exports per module, while default exports provide a single primary export. Understanding the differences and best practices is crucial for modern JavaScript development.
+
+</details>
+
+<details>
+<summary><strong>🎯 Key Points</strong></summary>
+
+- **Named Exports**: Multiple exports per module, must be imported with exact names or aliased
+- **Default Exports**: Single primary export per module, can be imported with any name
+- **Mixed Exports**: Combine both named and default exports in one module
+- **ES Modules vs CommonJS**: ESM is static, CommonJS is dynamic; ESM supports top-level await
+- **Import Types**: Named, default, namespace, and dynamic imports
+- **Re-exports**: Forward exports from other modules without importing them locally
+- **Module Resolution**: Node.js resolves paths based on file extensions and package.json
+
+</details>
+
+<details>
+<summary><strong>📋 Cheatsheet</strong></summary>
+
+| Export Type      | Syntax                                    | Import Syntax                              | Notes                                 |
+| ---------------- | ----------------------------------------- | ------------------------------------------ | ------------------------------------- |
+| Named Export     | `export const x = 1;`                     | `import { x } from './module';`            | Multiple per module, exact name match |
+| Default Export   | `export default class X {}`               | `import X from './module';`                | One per module, any import name       |
+| Mixed Export     | `export const x = 1; export default y;`   | `import y, { x } from './module';`         | Default first, then named in braces   |
+| Re-export        | `export { x } from './module';`           | `import { x } from './current';`           | Forward without local import          |
+| Namespace Import | `export const x = 1; export const y = 2;` | `import * as ns from './module';`          | Access as `ns.x`, `ns.y`              |
+| Dynamic Import   | N/A                                       | `const module = await import('./module');` | Runtime loading, returns promise      |
+| CommonJS Export  | `module.exports = x;`                     | `const x = require('./module');`           | Node.js legacy, dynamic               |
+| CommonJS Named   | `exports.x = 1;`                          | `const { x } = require('./module');`       | Destructuring from module.exports     |
+
+</details>
+
+<details>
+<summary><strong>💡 Code Snippets</strong></summary>
+
+#### Named Exports
+
+```javascript
+// math.js
+export const PI = 3.14159;
+export function add(a, b) {
+  return a + b;
+}
+export class Calculator {
+  constructor() {
+    this.result = 0;
+  }
+  add(x) {
+    this.result += x;
+    return this;
+  }
+}
+
+// main.js
+import { PI, add, Calculator } from "./math.js";
+console.log(PI); // 3.14159
+console.log(add(2, 3)); // 5
+const calc = new Calculator();
+```
+
+#### Default Exports
+
+```javascript
+// app.js
+export default class App {
+  constructor(name) {
+    this.name = name;
+  }
+  start() {
+    console.log(`${this.name} started!`);
+  }
+}
+
+// main.js
+import MyApp from "./app.js"; // Can use any name
+import App from "./app.js"; // Or the original name
+const app = new MyApp("MyApp");
+app.start(); // "MyApp started!"
+```
+
+#### Mixed Exports
+
+```javascript
+// utils.js
+export const VERSION = "1.0.0";
+export const DEBUG = true;
+
+export default function main() {
+  console.log("Main function");
+}
+
+// main.js
+import main, { VERSION, DEBUG } from "./utils.js";
+// Default import first, then named imports in braces
+```
+
+#### Re-exports
+
+```javascript
+// lib/index.js
+export { add, subtract } from "./math.js";
+export { default as Calculator } from "./calculator.js";
+export * from "./utils.js"; // Re-export all named exports
+
+// main.js
+import { add, subtract, Calculator } from "./lib/index.js";
+// No need to know the internal file structure
+```
+
+#### Dynamic Imports
+
+```javascript
+// Dynamic loading based on condition
+async function loadModule(moduleName) {
+  try {
+    const module = await import(`./modules/${moduleName}.js`);
+    return module.default || module;
+  } catch (error) {
+    console.error("Failed to load module:", error);
+    return null;
+  }
+}
+
+// Usage
+const mathModule = await loadModule("math");
+```
+
+#### CommonJS vs ES Modules
+
+```javascript
+// CommonJS (Node.js)
+// math.js
+module.exports = {
+  add: (a, b) => a + b,
+  subtract: (a, b) => a - b,
+};
+
+// main.js
+const math = require("./math.js");
+console.log(math.add(2, 3)); // 5
+
+// ES Modules (Modern)
+// math.js
+export function add(a, b) {
+  return a + b;
+}
+export function subtract(a, b) {
+  return a - b;
+}
+
+// main.js
+import { add, subtract } from "./math.js";
+console.log(add(2, 3)); // 5
+```
+
+#### Namespace Imports
+
+```javascript
+// utils.js
+export const formatDate = (date) => date.toISOString();
+export const formatCurrency = (amount) => `$${amount}`;
+export const validateEmail = (email) => email.includes("@");
+
+// main.js
+import * as Utils from "./utils.js";
+console.log(Utils.formatDate(new Date()));
+console.log(Utils.formatCurrency(100));
+console.log(Utils.validateEmail("test@example.com"));
+```
+
+#### Import Aliasing
+
+```javascript
+// math.js
+export function add(a, b) {
+  return a + b;
+}
+export function multiply(a, b) {
+  return a * b;
+}
+
+// main.js
+import { add as sum, multiply as product } from "./math.js";
+console.log(sum(2, 3)); // 5
+console.log(product(2, 3)); // 6
+```
+
+#### Top-level Await (ES Modules)
+
+```javascript
+// config.js
+export const config = await fetch("/api/config").then((r) => r.json());
+
+// main.js
+import { config } from "./config.js";
+console.log("Config loaded:", config);
+// Only works in ES modules, not CommonJS
+```
+
+</details>
+
+<details>
+<summary><strong>🚀 Best Practices</strong></summary>
+
+- **Use named exports** for utility functions and constants; use default exports for main classes/components
+- **Prefer ES Modules** over CommonJS for new code; they're the standard and support top-level await
+- **Use re-exports** to create clean public APIs and hide internal module structure
+- **Avoid circular dependencies**; they can cause issues with both ESM and CommonJS
+- **Use dynamic imports** for code splitting and lazy loading to improve performance
+- **Be consistent** with import/export patterns across your codebase
+- **Use TypeScript** for better module resolution and type safety
+
+</details>
+
+<details>
+<summary><strong>🎯 Tricky Questions & Answers</strong></summary>
+
+#### Basic Export/Import Behavior
+
+**Q: What will this output?**
+
+```javascript
+// math.js
+export const x = 1;
+export const y = 2;
+
+// main.js
+import { x, z } from "./math.js";
+console.log(x);
+console.log(z);
+```
+
+**A:** `1`, `ReferenceError: z is not defined` (importing non-existent named export causes error)
+
+**Q: What will this output?**
+
+```javascript
+// app.js
+export default class App {}
+export const VERSION = "1.0.0";
+
+// main.js
+import App, { VERSION } from "./app.js";
+console.log(typeof App);
+console.log(VERSION);
+```
+
+**A:** `'function'` (class is a function), `'1.0.0'` (mixed import works correctly)
+
+#### Default Export Behavior
+
+**Q: What will this output?**
+
+```javascript
+// module.js
+export default function () {
+  return "default";
+}
+export const named = "named";
+
+// main.js
+import anyName, { named } from "./module.js";
+console.log(anyName());
+console.log(named);
+```
+
+**A:** `'default'`, `'named'` (default export can be imported with any name)
+
+**Q: What will this output?**
+
+```javascript
+// module.js
+export default { x: 1, y: 2 };
+
+// main.js
+import obj from "./module.js";
+console.log(obj.x);
+```
+
+**A:** `1` (default export can be any value, including objects)
+
+#### Import/Export Aliasing
+
+**Q: What will this output?**
+
+```javascript
+// math.js
+export function add(a, b) {
+  return a + b;
+}
+
+// main.js
+import { add as sum } from "./math.js";
+console.log(sum(2, 3));
+console.log(add(2, 3));
+```
+
+**A:** `5`, `ReferenceError: add is not defined` (aliased import hides original name)
+
+**Q: What will this output?**
+
+```javascript
+// utils.js
+export const x = 1;
+export const y = 2;
+
+// main.js
+import { x as y, y as x } from "./utils.js";
+console.log(x, y);
+```
+
+**A:** `2, 1` (aliases swap the values)
+
+#### Re-export Behavior
+
+**Q: What will this output?**
+
+```javascript
+// inner.js
+export const x = 1;
+export default 'default';
+
+// middle.js
+export { x } from './inner.js';
+export { default } from './inner.js';
+
+// main.js
+import defaultExport, { x } from './middle.js';
+console.log(defaultExport);
+console.log(x);
+```
+
+**A:** `'default'`, `1` (re-exports forward both named and default exports)
+
+**Q: What will this output?**
+
+```javascript
+// math.js
+export const add = (a, b) => a + b;
+
+// index.js
+export { add as sum } from "./math.js";
+
+// main.js
+import { sum } from "./index.js";
+console.log(sum(2, 3));
+```
+
+**A:** `5` (re-export with alias works correctly)
+
+#### CommonJS vs ES Modules
+
+**Q: What will this output?**
+
+```javascript
+// module.js (CommonJS)
+module.exports = { x: 1, y: 2 };
+
+// main.js (ES Module)
+import obj from "./module.js";
+console.log(obj.x);
+```
+
+**A:** `1` (ES modules can import CommonJS modules, but not vice versa)
+
+**Q: What will this output?**
+
+```javascript
+// module.js (CommonJS)
+exports.x = 1;
+exports.y = 2;
+
+// main.js (ES Module)
+import { x, y } from "./module.js";
+console.log(x, y);
+```
+
+**A:** `1, 2` (named exports from CommonJS work in ES modules)
+
+**Q: What will this output?**
+
+```javascript
+// module.js (ES Module)
+export const x = 1;
+export default "default";
+
+// main.js (CommonJS)
+const module = require("./module.js");
+console.log(module.x);
+console.log(module.default);
+```
+
+**A:** `1`, `'default'` (CommonJS gets default export as `.default` property)
+
+#### Dynamic Imports
+
+**Q: What will this output?**
+
+```javascript
+// math.js
+export const add = (a, b) => a + b;
+
+// main.js
+async function test() {
+  const math = await import("./math.js");
+  console.log(math.add(2, 3));
+  console.log(typeof math.default);
+}
+test();
+```
+
+**A:** `5`, `'undefined'` (named exports are properties, no default export)
+
+**Q: What will this output?**
+
+```javascript
+// app.js
+export default class App {}
+
+// main.js
+async function test() {
+  const module = await import("./app.js");
+  console.log(typeof module.default);
+  console.log(typeof module.App);
+}
+test();
+```
+
+**A:** `'function'`, `'undefined'` (default export is in `.default` property)
+
+#### Module Resolution
+
+**Q: What will this output?**
+
+```javascript
+// file.js
+export const x = 1;
+
+// main.js
+import { x } from "./file"; // No .js extension
+console.log(x);
+```
+
+**A:** `1` (Node.js automatically resolves .js extension)
+
+**Q: What will this output?**
+
+```javascript
+// index.js
+export const x = 1;
+
+// main.js
+import { x } from "./folder"; // folder/index.js
+console.log(x);
+```
+
+**A:** `1` (Node.js automatically resolves index.js in folders)
+
+#### Circular Dependencies
+
+**Q: What will this output?**
+
+```javascript
+// a.js
+import { b } from "./b.js";
+export const a = 1;
+console.log("a loaded, b =", b);
+
+// b.js
+import { a } from "./a.js";
+export const b = 2;
+console.log("b loaded, a =", a);
+
+// main.js
+import { a } from "./a.js";
+```
+
+**A:** `'b loaded, a = undefined'`, `'a loaded, b = 2'` (circular dependency causes undefined values)
+
+#### Top-level Await
+
+**Q: What will this output?**
+
+```javascript
+// config.js
+export const config = await Promise.resolve({ api: "https://api.example.com" });
+
+// main.js
+import { config } from "./config.js";
+console.log(config.api);
+```
+
+**A:** `'https://api.example.com'` (top-level await works in ES modules)
+
+**Q: What will this output?**
+
+```javascript
+// data.js
+export const data = await fetch("/api/data").then((r) => r.json());
+
+// main.js
+import { data } from "./data.js";
+console.log(data);
+```
+
+**A:** The fetched data (top-level await can be used for API calls)
+
+#### Import/Export Hoisting
+
+**Q: What will this output?**
+
+```javascript
+// utils.js
+export function log() {
+  console.log("utils loaded");
+}
+
+// main.js
+log(); // Call before import
+import { log } from "./utils.js";
+```
+
+**A:** `'utils loaded'` (imports are hoisted to the top)
+
+**Q: What will this output?**
+
+```javascript
+// main.js
+console.log("Before import");
+import { x } from "./module.js";
+console.log("After import");
+```
+
+**A:** `'Before import'`, `'After import'` (imports are hoisted but execution order is preserved)
+
+#### Namespace Imports
+
+**Q: What will this output?**
+
+```javascript
+// math.js
+export const add = (a, b) => a + b;
+export const subtract = (a, b) => a - b;
+
+// main.js
+import * as Math from "./math.js";
+console.log(Math.add(5, 3));
+console.log(Math.subtract(5, 3));
+console.log(typeof Math.default);
+```
+
+**A:** `8`, `2`, `'undefined'` (namespace import includes all named exports, no default)
+
+**Q: What will this output?**
+
+```javascript
+// module.js
+export default "default";
+export const x = 1;
+export const y = 2;
+
+// main.js
+import * as ns from "./module.js";
+console.log(ns.default);
+console.log(ns.x);
+console.log(ns.y);
+```
+
+**A:** `'default'`, `1`, `2` (namespace import includes both default and named exports)
+
+#### Export Statement Behavior
+
+**Q: What will this output?**
+
+```javascript
+// module.js
+const x = 1;
+const y = 2;
+export { x, y as z };
+
+// main.js
+import { x, z } from "./module.js";
+console.log(x, z);
+```
+
+**A:** `1, 2` (export statement can alias exports)
+
+**Q: What will this output?**
+
+```javascript
+// module.js
+export { x, y } from "./other.js";
+
+// main.js
+import { x, y } from "./module.js";
+console.log(x, y);
+```
+
+**A:** Depends on `other.js` content (re-export forwards exports from another module)
+
+#### Mixed Import/Export Scenarios
+
+**Q: What will this output?**
+
+```javascript
+// module.js
+export const x = 1;
+export default function () {
+  return "default";
+}
+
+// main.js
+import def, { x } from "./module.js";
+console.log(def());
+console.log(x);
+```
+
+**A:** `'default'`, `1` (mixed import: default first, then named in braces)
+
+**Q: What will this output?**
+
+```javascript
+// module.js
+export default class App {}
+export const VERSION = "1.0.0";
+
+// main.js
+import App, { VERSION } from "./module.js";
+console.log(typeof App);
+console.log(VERSION);
+```
+
+**A:** `'function'`, `'1.0.0'` (class is a function, mixed import works)
+
+#### Error Handling in Dynamic Imports
+
+**Q: What will this output?**
+
+```javascript
+// main.js
+async function loadModule() {
+  try {
+    const module = await import("./non-existent.js");
+    return module;
+  } catch (error) {
+    console.log("Error:", error.message);
+    return null;
+  }
+}
+
+loadModule();
+```
+
+**A:** `'Error: Cannot find module './non-existent.js''` (dynamic imports throw errors for missing modules)
+
+#### Module Interoperability
+
+**Q: What will this output?**
+
+```javascript
+// legacy.js (CommonJS)
+module.exports = function () {
+  return "legacy";
+};
+
+// modern.js (ES Module)
+import legacy from "./legacy.js";
+console.log(legacy());
+```
+
+**A:** `'legacy'` (ES modules can import CommonJS modules)
+
+**Q: What will this output?**
+
+```javascript
+// modern.js (ES Module)
+export default function () {
+  return "modern";
+}
+
+// legacy.js (CommonJS)
+const modern = require("./modern.js");
+console.log(modern());
+```
+
+**A:** `TypeError: modern is not a function` (CommonJS cannot directly import ES modules)
+
+</details>
+
+<details>
+<summary><strong>🔍 Deep Dive</strong></summary>
+
+- **Module Resolution**: Node.js uses a specific algorithm to resolve module paths, checking file extensions and package.json
+- **Hoisting**: Import statements are hoisted to the top of the module, but execution order is preserved
+- **Circular Dependencies**: Can cause issues with both ESM and CommonJS; ESM handles them better with live bindings
+- **Live Bindings**: ES modules use live bindings, meaning changes to exported values are reflected in importing modules
+- **Tree Shaking**: ES modules enable better tree shaking (dead code elimination) than CommonJS
+- **Top-level Await**: Only available in ES modules, not CommonJS; useful for initialization and configuration
+- **Dynamic Imports**: Return promises and enable code splitting; useful for lazy loading and conditional imports
+- **Module Federation**: Advanced technique for sharing modules between different applications at runtime
+
+</details>
+
+---
