@@ -2114,3 +2114,437 @@ console.log(modern());
 </details>
 
 ---
+
+## 5. Strict Mode
+
+<details>
+<summary><strong>📚 Concept Overview</strong></summary>
+
+Strict mode is a way to opt into a restricted variant of JavaScript that catches common coding mistakes and prevents certain actions. It's enabled by adding `'use strict';` at the beginning of a script or function. Strict mode helps write more secure and optimized JavaScript code.
+
+</details>
+
+<details>
+<summary><strong>🎯 Key Points</strong></summary>
+
+- **Enabling**: Add `'use strict';` at the top of script or function
+- **Scope**: Can be global (entire script) or local (function only)
+- **Variables**: Prevents accidental global variable creation
+- **this**: `this` is `undefined` instead of global object in function calls
+- **Parameters**: No duplicate parameter names allowed
+- **Properties**: Cannot assign to read-only properties
+- **Octal**: Octal literals (e.g., `010`) are not allowed
+- **delete**: Cannot delete variables, functions, or function parameters
+
+</details>
+
+<details>
+<summary><strong>📋 Cheatsheet</strong></summary>
+
+| Feature                   | Non-Strict Mode               | Strict Mode    |
+| ------------------------- | ----------------------------- | -------------- |
+| Undeclared variables      | Creates global variable       | ReferenceError |
+| this in function calls    | global object (window/global) | undefined      |
+| Duplicate parameters      | Allowed (last wins)           | SyntaxError    |
+| Octal literals            | Allowed (010 = 8)             | SyntaxError    |
+| delete on variables       | Allowed (no effect)           | SyntaxError    |
+| Read-only property assign | Silently fails                | TypeError      |
+| eval/arguments as names   | Allowed                       | SyntaxError    |
+| with statement            | Allowed                       | SyntaxError    |
+
+</details>
+
+<details>
+<summary><strong>💡 Code Snippets</strong></summary>
+
+#### Basic Strict Mode Examples
+
+```javascript
+// Non-strict mode
+function nonStrict() {
+  undeclaredVar = 5; // Creates global variable
+  console.log(this); // global object (window/global)
+  console.log(undeclaredVar); // 5
+}
+
+// Strict mode
+function strict() {
+  "use strict";
+  // undeclaredVar = 5; // ReferenceError: undeclaredVar is not defined
+  console.log(this); // undefined
+}
+```
+
+#### Variable Declaration Differences
+
+```javascript
+// Non-strict mode
+function test() {
+  x = 10; // Creates global variable
+  console.log(x); // 10
+  console.log(window.x); // 10 (in browser)
+}
+test();
+
+// Strict mode
+function testStrict() {
+  "use strict";
+  // x = 10; // ReferenceError: x is not defined
+  let x = 10; // Must declare
+  console.log(x); // 10
+}
+testStrict();
+```
+
+#### this Binding Differences
+
+```javascript
+// Non-strict mode
+function regular() {
+  console.log(this);
+}
+regular(); // global object (window/global)
+
+// Strict mode
+function strict() {
+  "use strict";
+  console.log(this);
+}
+strict(); // undefined
+```
+
+#### Parameter and Property Restrictions
+
+```javascript
+// Non-strict mode
+function duplicate(a, a) {
+  // Allowed, second 'a' wins
+  console.log(a);
+}
+duplicate(1, 2); // 2
+
+// Strict mode
+function strictDuplicate(a, a) {
+  // SyntaxError: Duplicate parameter name
+  "use strict";
+  console.log(a);
+}
+
+// Property assignment
+const obj = {};
+Object.defineProperty(obj, "readonly", { value: 1, writable: false });
+
+// Non-strict mode
+obj.readonly = 2; // Silently fails
+console.log(obj.readonly); // 1
+
+// Strict mode
+("use strict");
+// obj.readonly = 2; // TypeError: Cannot assign to read only property
+```
+
+#### delete Operator Differences
+
+```javascript
+// Non-strict mode
+var x = 1;
+delete x; // Allowed (but has no effect)
+console.log(x); // 1
+
+// Strict mode
+("use strict");
+var y = 1;
+// delete y; // SyntaxError: Delete of an unqualified identifier
+```
+
+#### Octal Literals
+
+```javascript
+// Non-strict mode
+console.log(010); // 8 (octal)
+
+// Strict mode
+("use strict");
+// console.log(010); // SyntaxError: Octal literals are not allowed
+console.log(0o10); // 8 (ES6 octal with 'o' prefix)
+```
+
+</details>
+
+<details>
+<summary><strong>🚀 Best Practices</strong></summary>
+
+- **Always use strict mode** in new projects; it prevents common mistakes
+- **Enable globally** by adding `'use strict';` at the top of your main script
+- **Use in functions** when you can't control the global scope
+- **Test thoroughly** when migrating existing code to strict mode
+- **Be aware of differences** in `this` binding and error handling
+- **Use modern JavaScript features** (let, const, arrow functions) which are inherently safer
+
+</details>
+
+<details>
+<summary><strong>🎯 Tricky Questions & Answers</strong></summary>
+
+#### Variable Declaration Issues
+
+**Q: What will this output?**
+
+```javascript
+function test() {
+  x = 5;
+  console.log(x);
+}
+test();
+```
+
+**A:** `5` (non-strict mode creates global variable)
+
+**Q: What will this output?**
+
+```javascript
+function test() {
+  "use strict";
+  x = 5;
+  console.log(x);
+}
+test();
+```
+
+**A:** `ReferenceError: x is not defined` (strict mode requires declaration)
+
+#### this Binding Differences
+
+**Q: What will this output?**
+
+```javascript
+function regular() {
+  console.log(this === global);
+}
+regular();
+```
+
+**A:** `true` (non-strict mode, this is global object)
+
+**Q: What will this output?**
+
+```javascript
+function strict() {
+  "use strict";
+  console.log(this === undefined);
+}
+strict();
+```
+
+**A:** `true` (strict mode, this is undefined)
+
+#### Parameter Restrictions
+
+**Q: What will this output?**
+
+```javascript
+function test(a, a) {
+  console.log(a);
+}
+test(1, 2);
+```
+
+**A:** `2` (non-strict mode allows duplicate parameters, last wins)
+
+**Q: What will this output?**
+
+```javascript
+function test(a, a) {
+  "use strict";
+  console.log(a);
+}
+test(1, 2);
+```
+
+**A:** `SyntaxError: Duplicate parameter name` (strict mode prevents duplicates)
+
+#### Property Assignment
+
+**Q: What will this output?**
+
+```javascript
+const obj = {};
+Object.defineProperty(obj, "x", { value: 1, writable: false });
+obj.x = 2;
+console.log(obj.x);
+```
+
+**A:** `1` (non-strict mode silently fails, strict mode throws TypeError)
+
+**Q: What will this output?**
+
+```javascript
+"use strict";
+const obj = {};
+Object.defineProperty(obj, "x", { value: 1, writable: false });
+obj.x = 2;
+console.log(obj.x);
+```
+
+**A:** `TypeError: Cannot assign to read only property` (strict mode throws error)
+
+#### delete Operator
+
+**Q: What will this output?**
+
+```javascript
+var x = 1;
+delete x;
+console.log(x);
+```
+
+**A:** `1` (non-strict mode allows delete but has no effect)
+
+**Q: What will this output?**
+
+```javascript
+"use strict";
+var x = 1;
+delete x;
+console.log(x);
+```
+
+**A:** `SyntaxError: Delete of an unqualified identifier` (strict mode prevents delete on variables)
+
+#### Octal Literals
+
+**Q: What will this output?**
+
+```javascript
+console.log(010);
+```
+
+**A:** `8` (non-strict mode allows octal literals)
+
+**Q: What will this output?**
+
+```javascript
+"use strict";
+console.log(010);
+```
+
+**A:** `SyntaxError: Octal literals are not allowed` (strict mode prevents octal)
+
+#### eval and arguments Restrictions
+
+**Q: What will this output?**
+
+```javascript
+var eval = 1;
+console.log(eval);
+```
+
+**A:** `1` (non-strict mode allows eval as variable name)
+
+**Q: What will this output?**
+
+```javascript
+"use strict";
+var eval = 1;
+console.log(eval);
+```
+
+**A:** `SyntaxError: Unexpected eval or arguments in strict mode` (strict mode prevents eval as identifier)
+
+#### with Statement
+
+**Q: What will this output?**
+
+```javascript
+const obj = { x: 1 };
+with (obj) {
+  console.log(x);
+}
+```
+
+**A:** `1` (non-strict mode allows with statement)
+
+**Q: What will this output?**
+
+```javascript
+"use strict";
+const obj = { x: 1 };
+with (obj) {
+  console.log(x);
+}
+```
+
+**A:** `SyntaxError: Strict mode code may not include a with statement` (strict mode prevents with)
+
+#### Function Context
+
+**Q: What will this output?**
+
+```javascript
+function test() {
+  console.log(this);
+}
+test.call(null);
+```
+
+**A:** `null` (non-strict mode, null/undefined become global)
+
+**Q: What will this output?**
+
+```javascript
+"use strict";
+function test() {
+  console.log(this);
+}
+test.call(null);
+```
+
+**A:** `null` (strict mode preserves null/undefined as this)
+
+#### Arrow Functions in Strict Mode
+
+**Q: What will this output?**
+
+```javascript
+"use strict";
+const arrow = () => {
+  console.log(this);
+};
+arrow();
+```
+
+**A:** `undefined` (arrow functions capture lexical this, not affected by strict mode)
+
+#### Mixed Strict/Non-Strict
+
+**Q: What will this output?**
+
+```javascript
+function outer() {
+  console.log(this);
+  function inner() {
+    "use strict";
+    console.log(this);
+  }
+  inner();
+}
+outer();
+```
+
+**A:** `global object`, `undefined` (outer non-strict, inner strict)
+
+</details>
+
+<details>
+<summary><strong>🔍 Deep Dive</strong></summary>
+
+- **Performance**: Strict mode can enable certain optimizations in JavaScript engines
+- **Security**: Prevents accidental global variable creation and other security issues
+- **Compatibility**: Most modern code should use strict mode; legacy code may need migration
+- **ES6+**: Many ES6+ features implicitly enable strict mode (classes, modules, etc.)
+- **Migration**: When migrating to strict mode, test thoroughly for breaking changes
+- **Browser Support**: All modern browsers support strict mode; older browsers ignore the directive
+
+</details>
+
+---
