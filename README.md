@@ -660,7 +660,7 @@ console.log(b);
 })();
 ```
 
-**A:** `'undefined'` (`var a` is hoisted, but the value assignment is not)
+**A:** `'undefined'` (`var a` is hoisted, but value assignment isn't; typeof sees undefined)
 
 </details>
 
@@ -2232,16 +2232,24 @@ function strictDuplicate(a, a) {
 
 // Property assignment
 const obj = {};
-Object.defineProperty(obj, "readonly", { value: 1, writable: false });
-
-// Non-strict mode
-obj.readonly = 2; // Silently fails
-console.log(obj.readonly); // 1
-
-// Strict mode
-("use strict");
-// obj.readonly = 2; // TypeError: Cannot assign to read only property
+Object.defineProperty(obj, "x", { value: 1, writable: false });
+obj.x = 2;
+console.log(obj.x);
 ```
+
+**A:** `1` (non-strict mode silently fails, strict mode throws TypeError)
+
+**Q: What will this output?**
+
+```javascript
+"use strict";
+const obj = {};
+Object.defineProperty(obj, "x", { value: 1, writable: false });
+obj.x = 2;
+console.log(obj.x);
+```
+
+**A:** `TypeError: Cannot assign to read only property` (strict mode throws error)
 
 #### delete Operator Differences
 
@@ -2368,25 +2376,37 @@ test(1, 2);
 **Q: What will this output?**
 
 ```javascript
-const obj = {};
-Object.defineProperty(obj, "x", { value: 1, writable: false });
-obj.x = 2;
+const obj = {
+  get x() {
+    return this._x;
+  },
+  set x(val) {
+    this._x = val * 2;
+  },
+};
+obj.x = 5;
 console.log(obj.x);
 ```
 
-**A:** `1` (non-strict mode silently fails, strict mode throws TypeError)
+**A:** `10` (setter multiplies by 2, getter returns stored value)
 
 **Q: What will this output?**
 
 ```javascript
 "use strict";
-const obj = {};
-Object.defineProperty(obj, "x", { value: 1, writable: false });
-obj.x = 2;
+const obj = {
+  get x() {
+    return this._x;
+  },
+  set x(val) {
+    this._x = val * 2;
+  },
+};
+obj.x = 5;
 console.log(obj.x);
 ```
 
-**A:** `TypeError: Cannot assign to read only property` (strict mode throws error)
+**A:** `10` (setter multiplies by 2, getter returns stored value)
 
 #### delete Operator
 
@@ -2481,69 +2501,602 @@ with (obj) {
 **Q: What will this output?**
 
 ```javascript
-function test() {
-  console.log(this);
-}
-test.call(null);
-```
+let name = "global";
 
-**A:** `null` (non-strict mode, null/undefined become global)
-
-**Q: What will this output?**
-
-```javascript
-"use strict";
-function test() {
-  console.log(this);
-}
-test.call(null);
-```
-
-**A:** `null` (strict mode preserves null/undefined as this)
-
-#### Arrow Functions in Strict Mode
-
-**Q: What will this output?**
-
-```javascript
-"use strict";
-const arrow = () => {
-  console.log(this);
+const obj = {
+  name: "object",
+  method() {
+    let name = "local";
+    console.log(name);
+    console.log(this.name);
+  },
 };
-arrow();
+
+obj.method();
 ```
 
-**A:** `undefined` (arrow functions capture lexical this, not affected by strict mode)
+**A:** `"local"`, `"object"` (local variable shadows global, this.name refers to object property)
 
-#### Mixed Strict/Non-Strict
+#### Closures and Scope
 
 **Q: What will this output?**
 
 ```javascript
-function outer() {
-  console.log(this);
-  function inner() {
-    "use strict";
-    console.log(this);
-  }
-  inner();
+function createCounter() {
+  let count = 0;
+  return function () {
+    return ++count;
+  };
 }
-outer();
+
+const counter = createCounter();
+console.log(counter());
+console.log(counter());
+console.log(counter());
 ```
 
-**A:** `global object`, `undefined` (outer non-strict, inner strict)
+**A:** `1`, `2`, `3` (closure captures count from function scope)
 
 </details>
 
 <details>
 <summary><strong>🔍 Deep Dive</strong></summary>
 
-- **Performance**: Strict mode can enable certain optimizations in JavaScript engines
-- **Security**: Prevents accidental global variable creation and other security issues
-- **Compatibility**: Most modern code should use strict mode; legacy code may need migration
-- **ES6+**: Many ES6+ features implicitly enable strict mode (classes, modules, etc.)
-- **Migration**: When migrating to strict mode, test thoroughly for breaking changes
-- **Browser Support**: All modern browsers support strict mode; older browsers ignore the directive
+- **Lexical Scoping**: Scope is determined by where code is written, not where it's executed
+- **Scope Chain**: JavaScript looks for variables in current scope, then outer scope, then global scope
+- **Closures**: Functions can access variables from their outer scope even after the outer function has returned
+- **Module Scope**: ES modules create their own scope, separate from global scope
+- **Block Scope**: let/const create new scope for each block, preventing variable leakage
+- **Hoisting**: var declarations are hoisted to function/global scope, let/const are hoisted but in TDZ
+- **Shadowing**: Inner scope variables can hide outer scope variables, but this can make code harder to read
+- **Global Pollution**: var in global scope attaches to global object, let/const don't
+
+</details>
+
+---
+
+## 6. Scope
+
+<details>
+<summary><strong>📚 Concept Overview</strong></summary>
+
+Scope determines where variables and functions are accessible in JavaScript. There are three main scope types: Global scope (accessible everywhere), Function scope (accessible within a function), and Block scope (accessible within a block like `{}`, `if`, `for`, etc.). Understanding scope is crucial for variable lifetime, shadowing, and closure behavior.
+
+</details>
+
+<details>
+<summary><strong>🎯 Key Points</strong></summary>
+
+- **Global Scope**: Variables declared outside any function or block; accessible everywhere
+- **Function Scope**: Variables declared inside a function; accessible only within that function
+- **Block Scope**: Variables declared inside a block (`{}`, `if`, `for`, etc.); accessible only within that block
+- **var**: Function-scoped and global-scoped; hoisted to function/global scope
+- **let/const**: Block-scoped, function-scoped, and global-scoped; hoisted but in TDZ
+- **Shadowing**: Inner binding with same name hides outer binding
+- **Lexical Scope**: Scope is determined by where code is written, not where it's executed
+
+</details>
+
+<details>
+<summary><strong>📋 Cheatsheet</strong></summary>
+
+| Declaration | Global Scope | Function Scope | Block Scope | Hoisting | Re-declaration |
+| ----------- | ------------ | -------------- | ----------- | -------- | -------------- |
+| var         | ✅ Yes       | ✅ Yes         | ❌ No       | ✅ Yes   | ✅ Yes         |
+| let         | ✅ Yes       | ✅ Yes         | ✅ Yes      | ⚠️ TDZ   | ❌ No          |
+| const       | ✅ Yes       | ✅ Yes         | ✅ Yes      | ⚠️ TDZ   | ❌ No          |
+
+**Scope Rules:**
+
+- **var**: Function-scoped, leaks to function scope, attaches to global object
+- **let/const**: Block-scoped, contained within blocks, don't attach to global object
+- **Shadowing**: Inner declarations hide outer ones
+- **TDZ**: let/const are hoisted but inaccessible before declaration
+
+</details>
+
+<details>
+<summary><strong>💡 Code Snippets</strong></summary>
+
+#### Global Scope Examples
+
+```javascript
+// Global scope
+var globalVar = "I'm global var";
+let globalLet = "I'm global let";
+const globalConst = "I'm global const";
+
+function testGlobal() {
+  console.log(globalVar); // "I'm global var"
+  console.log(globalLet); // "I'm global let"
+  console.log(globalConst); // "I'm global const"
+}
+
+// In browser: globalVar becomes window.globalVar
+// In Node.js: globalVar becomes global.globalVar
+// let/const do NOT attach to global object
+```
+
+#### Function Scope Examples
+
+```javascript
+function functionScope() {
+  var funcVar = "I'm function var";
+  let funcLet = "I'm function let";
+  const funcConst = "I'm function const";
+
+  console.log(funcVar); // "I'm function var"
+  console.log(funcLet); // "I'm function let"
+  console.log(funcConst); // "I'm function const"
+}
+
+functionScope();
+// console.log(funcVar);   // ReferenceError: funcVar is not defined
+// console.log(funcLet);   // ReferenceError: funcLet is not defined
+// console.log(funcConst); // ReferenceError: funcConst is not defined
+```
+
+#### Block Scope Examples
+
+```javascript
+// Block scope with var (function-scoped)
+function blockScopeVar() {
+  if (true) {
+    var blockVar = "I'm block var";
+    console.log(blockVar); // "I'm block var"
+  }
+  console.log(blockVar); // "I'm block var" (var leaks to function scope)
+}
+
+// Block scope with let/const
+function blockScopeLet() {
+  if (true) {
+    let blockLet = "I'm block let";
+    const blockConst = "I'm block const";
+    console.log(blockLet); // "I'm block let"
+    console.log(blockConst); // "I'm block const"
+  }
+  // console.log(blockLet);   // ReferenceError: blockLet is not defined
+  // console.log(blockConst); // ReferenceError: blockConst is not defined
+}
+```
+
+#### Variable Shadowing
+
+```javascript
+let shadowVar = "outer";
+
+function shadowing() {
+  let shadowVar = "inner";
+  console.log(shadowVar); // "inner" (shadows outer)
+
+  if (true) {
+    let shadowVar = "block";
+    console.log(shadowVar); // "block" (shadows both outer and inner)
+  }
+
+  console.log(shadowVar); // "inner" (back to function scope)
+}
+
+shadowing();
+console.log(shadowVar); // "outer" (global scope)
+```
+
+#### Loop Scope Behavior
+
+```javascript
+// var in loops (function-scoped)
+function varLoop() {
+  for (var i = 0; i < 3; i++) {
+    setTimeout(() => console.log(i), 100);
+  }
+  console.log("After loop:", i); // 3 (var leaks to function scope)
+}
+varLoop(); // 3, 3, 3, "After loop: 3"
+
+// let in loops (block-scoped)
+function letLoop() {
+  for (let j = 0; j < 3; j++) {
+    setTimeout(() => console.log(j), 100);
+  }
+  // console.log("After loop:", j); // ReferenceError: j is not defined
+}
+letLoop(); // 0, 1, 2
+```
+
+#### Temporal Dead Zone (TDZ)
+
+```javascript
+function tdzExample() {
+  console.log("Before declaration");
+
+  // console.log(tdzVar); // ReferenceError: Cannot access 'tdzVar' before initialization
+
+  let tdzVar = "I'm in TDZ";
+  console.log("After declaration:", tdzVar);
+}
+
+// var doesn't have TDZ
+function varTdz() {
+  console.log(varVar); // undefined (hoisted but not initialized)
+  var varVar = "I'm var";
+}
+```
+
+#### Nested Scopes
+
+```javascript
+let outer = "outer";
+
+function nested() {
+  let middle = "middle";
+
+  function inner() {
+    let innerVar = "inner";
+    console.log(outer); // "outer" (global scope)
+    console.log(middle); // "middle" (function scope)
+    console.log(innerVar); // "inner" (local scope)
+  }
+
+  inner();
+  console.log(outer);
+  // console.log(innerVar); // ReferenceError
+}
+
+nested();
+```
+
+#### Module Scope
+
+```javascript
+// In ES modules (files with import/export)
+let moduleVar = "I'm module scoped";
+// This is NOT global scope - it's module scope
+// Not accessible from other modules unless exported
+
+export { moduleVar };
+```
+
+</details>
+
+<details>
+<summary><strong>🚀 Best Practices</strong></summary>
+
+- **Use `const` by default**; use `let` when reassignment is needed; avoid `var`
+- **Declare variables** in the narrowest scope possible
+- **Be aware of shadowing** and its implications for readability
+- **Use block scope** to prevent variable leakage and improve encapsulation
+- **Understand TDZ** to avoid reference errors with `let`/`const`
+- **Prefer ES modules** over global scope for better encapsulation
+- **Use meaningful variable names** to avoid accidental shadowing
+
+</details>
+
+<details>
+<summary><strong>🎯 Tricky Questions & Answers</strong></summary>
+
+#### Hoisting and TDZ in Variables
+
+**Q: What will this output?**
+
+```javascript
+console.log(a); // undefined (var hoisted)
+var a = 1;
+
+// console.log(b); // ❌ ReferenceError (TDZ)
+let b = 2;
+
+// console.log(c); // ❌ ReferenceError (TDZ)
+const c = 3;
+```
+
+**A:** `undefined`, `ReferenceError: Cannot access 'b' before initialization`, `ReferenceError: Cannot access 'c' before initialization`
+
+#### Scope and Shadowing
+
+**Q: What will this output?**
+
+```javascript
+var g = "global";
+function demo() {
+  console.log(g); // undefined (local var g is hoisted and shadows global)
+  var g = "local";
+  console.log(g); // 'local'
+}
+demo();
+```
+
+**A:** `undefined`, `'local'` (var is hoisted, shadowing global)
+
+#### Loops, Closures, Scope, and Hoisting
+
+**Q: What will this output?**
+
+```javascript
+for (var i = 0; i < 3; i++) {
+  setTimeout(() => console.log(i), 100);
+}
+```
+
+**A:** `3, 3, 3` (var is function-scoped, all closures reference the same variable)
+
+**Q: What will this output?**
+
+```javascript
+for (let j = 0; j < 3; j++) {
+  setTimeout(() => console.log(j), 100);
+}
+```
+
+**A:** `0, 1, 2` (let is block-scoped, each iteration creates new variable)
+
+#### Temporal Dead Zone
+
+**Q: What will this output?**
+
+```javascript
+console.log(x);
+let x = 5;
+```
+
+**A:** `ReferenceError: Cannot access 'x' before initialization`
+
+**Q: What will this output?**
+
+```javascript
+console.log(y);
+var y = 5;
+```
+
+**A:** `undefined` (var is hoisted and initialized to undefined)
+
+#### Scope Chain and Lexical Scoping
+
+**Q: What will this output?**
+
+```javascript
+let outer = "outer";
+
+function test() {
+  console.log(outer);
+  let outer = "inner";
+  console.log(outer);
+}
+test();
+```
+
+**A:** `ReferenceError: Cannot access 'outer' before initialization` (TDZ prevents accessing outer from global)
+
+**Q: What will this output?**
+
+```javascript
+let outer = "outer";
+
+function test() {
+  console.log(outer);
+  var outer = "inner";
+  console.log(outer);
+}
+test();
+```
+
+**A:** `undefined`, `"inner"` (var is hoisted, shadowing global outer)
+
+#### Global Object Attachment
+
+**Q: What will this output?**
+
+```javascript
+var globalVar = "var";
+let globalLet = "let";
+console.log(globalVar === window.globalVar);
+console.log(globalLet === window.globalLet);
+```
+
+**A:** `true`, `false` (var attaches to global object, let doesn't)
+
+#### Function Declaration vs Expression
+
+**Q: What will this output?**
+
+```javascript
+function test() {
+  console.log(typeof funcDecl);
+  console.log(typeof funcExpr);
+
+  function funcDecl() {}
+  var funcExpr = function () {};
+}
+test();
+```
+
+**A:** `"function"`, `"undefined"` (function declarations are hoisted, expressions are not)
+
+#### Block Scope with var
+
+**Q: What will this output?**
+
+```javascript
+function test() {
+  {
+    var x = 1;
+  }
+  console.log(x);
+}
+test();
+```
+
+**A:** `1` (var ignores block scope, leaks to function scope)
+
+#### const in Blocks
+
+**Q: What will this output?**
+
+```javascript
+const x = 1;
+{
+  const x = 2;
+  console.log(x);
+}
+console.log(x);
+```
+
+**A:** `2`, `1` (const respects block scope, shadowing works)
+
+#### Module Scope
+
+**Q: What will this output?**
+
+```javascript
+// module1.js
+let moduleVar = "module1";
+export { moduleVar };
+
+// module2.js
+import { moduleVar } from "./module1.js";
+console.log(moduleVar);
+```
+
+**A:** `"module1"` (imported variables are in module scope)
+
+#### Nested Function Scope
+
+**Q: What will this output?**
+
+```javascript
+let global = "global";
+
+function outer() {
+  let outerVar = "outer";
+
+  function inner() {
+    let innerVar = "inner";
+    console.log(global, outerVar, innerVar);
+  }
+
+  inner();
+  console.log(global, outerVar);
+  // console.log(innerVar); // ReferenceError
+}
+outer();
+```
+
+**A:** `"global outer inner"`, `"global outer"` (lexical scoping allows access to outer variables)
+
+#### Hoisting in Different Scopes
+
+**Q: What will this output?**
+
+```javascript
+console.log(x);
+var x = 1;
+
+console.log(y);
+let y = 2;
+```
+
+**A:** `undefined`, `ReferenceError: Cannot access 'y' before initialization`
+
+#### Re-declaration Rules
+
+**Q: What will this output?**
+
+```javascript
+var a = 1;
+var a = 2;
+console.log(a);
+
+let b = 1;
+let b = 2;
+console.log(b);
+```
+
+**A:** `2`, `SyntaxError: Identifier 'b' has already been declared`
+
+#### Block Scope with if/else
+
+**Q: What will this output?**
+
+```javascript
+if (true) {
+  let x = "if";
+} else {
+  let x = "else";
+}
+console.log(x);
+```
+
+**A:** `ReferenceError: x is not defined` (let is block-scoped)
+
+#### Function Scope with var
+
+**Q: What will this output?**
+
+```javascript
+if (true) {
+  var x = "if";
+} else {
+  var x = "else";
+}
+console.log(x);
+```
+
+**A:** `"if"` (var is function-scoped, not block-scoped)
+
+#### Scope and this
+
+**Q: What will this output?**
+
+```javascript
+let name = "global";
+
+const obj = {
+  name: "object",
+  method() {
+    let name = "local";
+    console.log(name);
+    console.log(this.name);
+  },
+};
+
+obj.method();
+```
+
+**A:** `"local"`, `"object"` (local variable shadows global, this.name refers to object property)
+
+#### Closures and Scope
+
+**Q: What will this output?**
+
+```javascript
+function createCounter() {
+  let count = 0;
+  return function () {
+    return ++count;
+  };
+}
+
+const counter = createCounter();
+console.log(counter());
+console.log(counter());
+console.log(counter());
+```
+
+**A:** `1`, `2`, `3` (closure captures count from function scope)
+
+</details>
+
+<details>
+<summary><strong>🔍 Deep Dive</strong></summary>
+
+- **Lexical Scoping**: Scope is determined by where code is written, not where it's executed
+- **Scope Chain**: JavaScript looks for variables in current scope, then outer scope, then global scope
+- **Closures**: Functions can access variables from their outer scope even after the outer function has returned
+- **Module Scope**: ES modules create their own scope, separate from global scope
+- **Block Scope**: let/const create new scope for each block, preventing variable leakage
+- **Hoisting**: var declarations are hoisted to function/global scope, let/const are hoisted but in TDZ
+- **Shadowing**: Inner scope variables can hide outer scope variables, but this can make code harder to read
+- **Global Pollution**: var in global scope attaches to global object, let/const don't
 
 </details>
 
