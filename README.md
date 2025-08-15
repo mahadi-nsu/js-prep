@@ -7,6 +7,10 @@ A comprehensive collection of JavaScript concepts, cheatsheets, and code snippet
 1. [Hoisting](#hoisting)
 2. [Variables](#variables)
 3. [Objects](#objects)
+4. [Exports & Imports](#exports-and-imports)
+5. [Strict Mode](#strict-mode)
+6. [Scope](#scope)
+7. [Array Methods](#array-methods)
 
 ---
 
@@ -377,7 +381,7 @@ console.log(duplicate());
 
 **A:** `"Second"` (second function declaration overwrites the first)
 
-**Q: What’s wrong here?**
+**Q: What's wrong here?**
 
 ```javascript
 const obj = { a: 1 };
@@ -615,7 +619,7 @@ for (let j = 0; j < 3; j++) setTimeout(() => console.log(j)); // 0, 1, 2
 <details>
 <summary><strong>➕ More Tricky Variable Questions</strong></summary>
 
-**Q: What’s wrong here?**
+**Q: What's wrong here?**
 
 ```javascript
 const obj = { a: 1 };
@@ -2777,8 +2781,6 @@ export { moduleVar };
 
 #### Hoisting and TDZ in Variables
 
-**Q: What will this output?**
-
 ```javascript
 console.log(a); // undefined (var hoisted)
 var a = 1;
@@ -2794,8 +2796,6 @@ const c = 3;
 
 #### Scope and Shadowing
 
-**Q: What will this output?**
-
 ```javascript
 var g = "global";
 function demo() {
@@ -2809,8 +2809,6 @@ demo();
 **A:** `undefined`, `'local'` (var is hoisted, shadowing global)
 
 #### Loops, Closures, Scope, and Hoisting
-
-**Q: What will this output?**
 
 ```javascript
 for (var i = 0; i < 3; i++) {
@@ -3097,6 +3095,573 @@ console.log(counter());
 - **Hoisting**: var declarations are hoisted to function/global scope, let/const are hoisted but in TDZ
 - **Shadowing**: Inner scope variables can hide outer scope variables, but this can make code harder to read
 - **Global Pollution**: var in global scope attaches to global object, let/const don't
+
+</details>
+
+---
+
+## 7. Array Methods
+
+<details>
+<summary><strong>📚 Concept Overview</strong></summary>
+
+JavaScript arrays provide a rich set of built-in methods for manipulation, iteration, and transformation. These methods can be categorized as mutating (change the original array), non-mutating (return new arrays/values), or iteration methods. Understanding these methods is crucial for efficient array manipulation and functional programming patterns.
+
+</details>
+
+<details>
+<summary><strong>🎯 Key Points</strong></summary>
+
+- **Mutating Methods**: `push()`, `pop()`, `shift()`, `unshift()`, `splice()`, `reverse()`, `sort()`, `fill()`, `copyWithin()`
+- **Non-Mutating Methods**: `slice()`, `concat()`, `join()`, `indexOf()`, `includes()`, `find()`, `findIndex()`, `filter()`, `map()`, `reduce()`, `every()`, `some()`
+- **Iteration Methods**: `forEach()`, `for...of`, `for...in` (not recommended for arrays)
+- **Return Values**: Some methods return the modified array, others return new arrays or values
+- **Callback Functions**: Many methods accept callback functions for custom logic
+- **Chaining**: Non-mutating methods can be chained for complex transformations
+
+</details>
+
+<details>
+<summary><strong>📋 Cheatsheet</strong></summary>
+
+| Method              | Mutates? | Returns        | Description               |
+| ------------------- | -------- | -------------- | ------------------------- |
+| **Adding/Removing** |
+| `push()`            | ✅ Yes   | new length     | Add to end                |
+| `pop()`             | ✅ Yes   | removed item   | Remove from end           |
+| `unshift()`         | ✅ Yes   | new length     | Add to beginning          |
+| `shift()`           | ✅ Yes   | removed item   | Remove from beginning     |
+| `splice()`          | ✅ Yes   | removed items  | Add/remove at index       |
+| **Transformation**  |
+| `slice()`           | ❌ No    | new array      | Extract portion           |
+| `concat()`          | ❌ No    | new array      | Combine arrays            |
+| `join()`            | ❌ No    | string         | Join to string            |
+| `reverse()`         | ✅ Yes   | same array     | Reverse order             |
+| `sort()`            | ✅ Yes   | same array     | Sort elements             |
+| **Searching**       |
+| `indexOf()`         | ❌ No    | index/-1       | Find item                 |
+| `lastIndexOf()`     | ❌ No    | index/-1       | Find last occurrence      |
+| `includes()`        | ❌ No    | boolean        | Check existence           |
+| `find()`            | ❌ No    | item/undefined | Find with condition       |
+| `findIndex()`       | ❌ No    | index/-1       | Find index with condition |
+| **Iteration**       |
+| `forEach()`         | ❌ No    | undefined      | Execute for each          |
+| `map()`             | ❌ No    | new array      | Transform each            |
+| `filter()`          | ❌ No    | new array      | Filter items              |
+| `reduce()`          | ❌ No    | single value   | Accumulate values         |
+| `reduceRight()`     | ❌ No    | single value   | Accumulate right-to-left  |
+| **Testing**         |
+| `every()`           | ❌ No    | boolean        | All pass test             |
+| `some()`            | ❌ No    | boolean        | Any pass test             |
+| **Utility**         |
+| `fill()`            | ✅ Yes   | same array     | Fill with value           |
+| `copyWithin()`      | ✅ Yes   | same array     | Copy within array         |
+| `flat()`            | ❌ No    | new array      | Flatten nested            |
+| `flatMap()`         | ❌ No    | new array      | Map then flatten          |
+
+</details>
+
+<details>
+<summary><strong>💡 Code Snippets</strong></summary>
+
+#### Adding and Removing Elements
+
+```javascript
+const arr = [1, 2, 3];
+
+// Adding elements
+arr.push(4); // [1, 2, 3, 4] - returns 4 (new length)
+arr.unshift(0); // [0, 1, 2, 3, 4] - returns 5 (new length)
+
+// Removing elements
+arr.pop(); // [0, 1, 2, 3] - returns 4 (removed item)
+arr.shift(); // [1, 2, 3] - returns 0 (removed item)
+
+// splice(start, deleteCount, ...items)
+arr.splice(1, 1, "a", "b"); // [1, 'a', 'b', 3] - returns [2] (removed items)
+```
+
+#### Non-Mutating Operations
+
+```javascript
+const original = [1, 2, 3, 4, 5];
+
+// slice(start, end) - extract portion
+const portion = original.slice(1, 3); // [2, 3] - original unchanged
+
+// concat() - combine arrays
+const combined = original.concat([6, 7], [8, 9]); // [1, 2, 3, 4, 5, 6, 7, 8, 9]
+
+// join() - convert to string
+const str = original.join("-"); // "1-2-3-4-5"
+```
+
+#### Searching Methods
+
+```javascript
+const arr = ["apple", "banana", "cherry", "banana"];
+
+// indexOf() - find first occurrence
+arr.indexOf("banana"); // 1
+arr.indexOf("orange"); // -1 (not found)
+
+// lastIndexOf() - find last occurrence
+arr.lastIndexOf("banana"); // 3
+
+// includes() - check existence
+arr.includes("cherry"); // true
+arr.includes("orange"); // false
+
+// find() - find with condition
+const found = arr.find((item) => item.length > 5); // 'banana'
+
+// findIndex() - find index with condition
+const index = arr.findIndex((item) => item.startsWith("c")); // 2
+```
+
+#### Iteration Methods
+
+```javascript
+const numbers = [1, 2, 3, 4, 5];
+
+// forEach() - execute for each
+numbers.forEach((num, index) => {
+  console.log(`Index ${index}: ${num}`);
+});
+
+// map() - transform each
+const doubled = numbers.map((num) => num * 2); // [2, 4, 6, 8, 10]
+
+// filter() - filter items
+const evens = numbers.filter((num) => num % 2 === 0); // [2, 4]
+
+// reduce() - accumulate values
+const sum = numbers.reduce((acc, num) => acc + num, 0); // 15
+const product = numbers.reduce((acc, num) => acc * num, 1); // 120
+```
+
+#### Testing Methods
+
+```javascript
+const numbers = [2, 4, 6, 8, 10];
+
+// every() - all pass test
+const allEven = numbers.every((num) => num % 2 === 0); // true
+
+// some() - any pass test
+const hasLarge = numbers.some((num) => num > 8); // true
+```
+
+#### Sorting and Reversing
+
+```javascript
+const fruits = ["banana", "apple", "cherry"];
+
+// sort() - alphabetical
+fruits.sort(); // ['apple', 'banana', 'cherry']
+
+// sort() with custom comparator
+const numbers = [10, 5, 8, 1, 9];
+numbers.sort((a, b) => a - b); // [1, 5, 8, 9, 10]
+
+// reverse() - reverse order
+fruits.reverse(); // ['cherry', 'banana', 'apple']
+```
+
+#### Modern Array Methods
+
+```javascript
+// flat() - flatten nested arrays
+const nested = [1, [2, 3], [4, [5, 6]]];
+const flattened = nested.flat(); // [1, 2, 3, 4, [5, 6]]
+const deeplyFlattened = nested.flat(2); // [1, 2, 3, 4, 5, 6]
+
+// flatMap() - map then flatten
+const sentences = ["Hello world", "Good morning"];
+const words = sentences.flatMap((sentence) => sentence.split(" ")); // ['Hello', 'world', 'Good', 'morning']
+
+// fill() - fill with value
+const arr = new Array(3).fill(0); // [0, 0, 0]
+```
+
+#### Method Chaining
+
+```javascript
+const numbers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+
+const result = numbers
+  .filter((num) => num % 2 === 0) // [2, 4, 6, 8, 10]
+  .map((num) => num * 2) // [4, 8, 12, 16, 20]
+  .reduce((sum, num) => sum + num, 0); // 60
+```
+
+</details>
+
+<details>
+<summary><strong>🚀 Best Practices</strong></summary>
+
+- **Prefer non-mutating methods** when possible to avoid side effects
+- **Use method chaining** for complex transformations
+- **Be aware of return values** - some methods return the array, others return new values
+- **Use appropriate methods** - `forEach` for side effects, `map` for transformations, `filter` for filtering
+- **Avoid `for...in`** for arrays - use `for...of` or array methods instead
+- **Use `reduce()`** for complex accumulations and transformations
+- **Consider performance** - `forEach` is faster than `for...of` for simple iterations
+- **Use `flatMap()`** when you need to map and flatten in one step
+
+</details>
+
+<details>
+<summary><strong>🎯 Tricky Questions & Answers</strong></summary>
+
+#### Basic Array Operations
+
+**Q: What will this output?**
+
+```javascript
+const arr = [1, 2, 3];
+arr.push(4);
+console.log(arr);
+```
+
+**A:** `[1, 2, 3, 4]` (push adds to end and mutates array)
+
+**Q: What will this output?**
+
+```javascript
+const arr = [1, 2, 3];
+const result = arr.push(4);
+console.log(result);
+```
+
+**A:** `4` (push returns the new length of the array)
+
+#### Mutating vs Non-Mutating
+
+**Q: What will this output?**
+
+```javascript
+const arr = [1, 2, 3];
+const sliced = arr.slice(1);
+console.log(arr);
+console.log(sliced);
+```
+
+**A:** `[1, 2, 3]`, `[2, 3]` (slice doesn't mutate original)
+
+**Q: What will this output?**
+
+```javascript
+const arr = [1, 2, 3];
+const reversed = arr.reverse();
+console.log(arr);
+console.log(reversed);
+```
+
+**A:** `[3, 2, 1]`, `[3, 2, 1]` (reverse mutates and returns same array)
+
+#### Splice Behavior
+
+**Q: What will this output?**
+
+```javascript
+const arr = [1, 2, 3, 4, 5];
+const removed = arr.splice(2, 2, "a", "b");
+console.log(arr);
+console.log(removed);
+```
+
+**A:** `[1, 2, 'a', 'b', 5]`, `[3, 4]` (splice removes and inserts, returns removed items)
+
+**Q: What will this output?**
+
+```javascript
+const arr = [1, 2, 3];
+arr.splice(1, 0, "a");
+console.log(arr);
+```
+
+**A:** `[1, 'a', 2, 3]` (splice with 0 deleteCount only inserts)
+
+#### Search Methods
+
+**Q: What will this output?**
+
+```javascript
+const arr = [1, 2, 3, 2, 4];
+console.log(arr.indexOf(2));
+console.log(arr.lastIndexOf(2));
+```
+
+**A:** `1`, `3` (indexOf finds first, lastIndexOf finds last)
+
+**Q: What will this output?**
+
+```javascript
+const arr = [1, 2, 3, 4, 5];
+const found = arr.find((num) => num > 3);
+const index = arr.findIndex((num) => num > 3);
+console.log(found);
+console.log(index);
+```
+
+**A:** `4`, `3` (find returns item, findIndex returns index)
+
+#### Iteration Methods
+
+**Q: What will this output?**
+
+```javascript
+const arr = [1, 2, 3];
+const result = arr.forEach((num) => num * 2);
+console.log(result);
+```
+
+**A:** `undefined` (forEach returns undefined)
+
+**Q: What will this output?**
+
+```javascript
+const arr = [1, 2, 3];
+const doubled = arr.map((num) => num * 2);
+console.log(doubled);
+```
+
+**A:** `[2, 4, 6]` (map returns new array with transformed values)
+
+#### Filter and Reduce
+
+**Q: What will this output?**
+
+```javascript
+const arr = [1, 2, 3, 4, 5, 6];
+const evens = arr.filter((num) => num % 2 === 0);
+console.log(evens);
+```
+
+**A:** `[2, 4, 6]` (filter returns new array with items that pass test)
+
+**Q: What will this output?**
+
+```javascript
+const arr = [1, 2, 3, 4];
+const sum = arr.reduce((acc, num) => acc + num, 0);
+console.log(sum);
+```
+
+**A:** `10` (reduce accumulates values, starting with initial value 0)
+
+**Q: What will this output?**
+
+```javascript
+const arr = [1, 2, 3, 4];
+const sum = arr.reduce((acc, num) => acc + num);
+console.log(sum);
+```
+
+**A:** `10` (reduce without initial value uses first element as initial)
+
+#### Testing Methods
+
+**Q: What will this output?**
+
+```javascript
+const arr = [2, 4, 6, 8];
+const allEven = arr.every((num) => num % 2 === 0);
+const someOdd = arr.some((num) => num % 2 === 1);
+console.log(allEven);
+console.log(someOdd);
+```
+
+**A:** `true`, `false` (every checks all, some checks any)
+
+#### Sort Behavior
+
+**Q: What will this output?**
+
+```javascript
+const arr = [10, 5, 8, 1, 9];
+arr.sort();
+console.log(arr);
+```
+
+**A:** `[1, 10, 5, 8, 9]` (sort converts to strings by default)
+
+**Q: What will this output?**
+
+```javascript
+const arr = [10, 5, 8, 1, 9];
+arr.sort((a, b) => a - b);
+console.log(arr);
+```
+
+**A:** `[1, 5, 8, 9, 10]` (numeric sort with comparator)
+
+#### Method Chaining
+
+**Q: What will this output?**
+
+```javascript
+const arr = [1, 2, 3, 4, 5];
+const result = arr
+  .filter((num) => num > 2)
+  .map((num) => num * 2)
+  .reduce((sum, num) => sum + num, 0);
+console.log(result);
+```
+
+**A:** `18` (filter [3,4,5] → map [6,8,10] → reduce 6+8+10=18)
+
+#### Array-like Objects
+
+**Q: What will this output?**
+
+```javascript
+const str = "hello";
+const chars = Array.from(str);
+console.log(chars);
+```
+
+**A:** `['h', 'e', 'l', 'l', 'o']` (Array.from converts array-like to array)
+
+#### Sparse Arrays
+
+**Q: What will this output?**
+
+```javascript
+const arr = [1, , 3];
+console.log(arr.length);
+console.log(arr[1]);
+```
+
+**A:** `3`, `undefined` (sparse arrays have holes)
+
+**Q: What will this output?**
+
+```javascript
+const arr = [1, , 3];
+const filtered = arr.filter((x) => true);
+console.log(filtered);
+```
+
+**A:** `[1, 3]` (filter skips holes)
+
+#### Flat and FlatMap
+
+**Q: What will this output?**
+
+```javascript
+const arr = [1, [2, 3], [4, [5, 6]]];
+const flattened = arr.flat();
+console.log(flattened);
+```
+
+**A:** `[1, 2, 3, 4, [5, 6]]` (flat flattens one level by default)
+
+**Q: What will this output?**
+
+```javascript
+const arr = [1, 2, 3];
+const result = arr.flatMap((x) => [x, x * 2]);
+console.log(result);
+```
+
+**A:** `[1, 2, 2, 4, 3, 6]` (flatMap maps then flattens)
+
+#### Return Values
+
+**Q: What will this output?**
+
+```javascript
+const arr = [1, 2, 3];
+const popResult = arr.pop();
+const pushResult = arr.push(4);
+console.log(popResult);
+console.log(pushResult);
+```
+
+**A:** `3`, `3` (pop returns removed item, push returns new length)
+
+#### Empty Arrays
+
+**Q: What will this output?**
+
+```javascript
+const arr = [];
+const result = arr.reduce((acc, num) => acc + num);
+console.log(result);
+```
+
+**A:** `TypeError: Reduce of empty array with no initial value`
+
+**Q: What will this output?**
+
+```javascript
+const arr = [];
+const result = arr.reduce((acc, num) => acc + num, 0);
+console.log(result);
+```
+
+**A:** `0` (with initial value, reduce works on empty array)
+
+#### Index Parameters
+
+**Q: What will this output?**
+
+```javascript
+const arr = ["a", "b", "c"];
+arr.forEach((item, index, array) => {
+  console.log(item, index, array.length);
+});
+```
+
+**A:** `a 0 3`, `b 1 3`, `c 2 3` (forEach provides item, index, and array)
+
+#### Mutable vs Immutable
+
+**Q: What will this output?**
+
+```javascript
+const arr = [{ name: "John" }, { name: "Jane" }];
+const names = arr.map((person) => person.name);
+arr[0].name = "Bob";
+console.log(names);
+```
+
+**A:** `['John', 'Jane']` (names array is separate, but objects are referenced)
+
+#### Complex Reduce
+
+**Q: What will this output?**
+
+```javascript
+const arr = [1, 2, 3, 4, 5];
+const result = arr.reduce(
+  (acc, num) => {
+    acc.evens.push(num % 2 === 0 ? num : 0);
+    acc.odds.push(num % 2 === 1 ? num : 0);
+    return acc;
+  },
+  { evens: [], odds: [] }
+);
+console.log(result);
+```
+
+**A:** `{evens: [0, 2, 0, 4, 0], odds: [1, 0, 3, 0, 5]}` (complex reduce with object accumulator)
+
+</details>
+
+<details>
+<summary><strong>🔍 Deep Dive</strong></summary>
+
+- **Performance**: `forEach` is generally faster than `for...of` for simple iterations
+- **Memory**: Non-mutating methods create new arrays, which can impact memory usage
+- **Sparse Arrays**: Methods handle holes differently - `filter` skips them, `map` preserves them
+- **Array-like Objects**: `Array.from()` and spread operator can convert array-like objects to arrays
+- **Method Chaining**: Chain non-mutating methods for complex transformations
+- **Return Values**: Always check what methods return - some return arrays, others return values
+- **Callback Functions**: Many methods accept optional parameters like `thisArg` for callback context
+- **Polyfills**: Some methods like `flat()` and `flatMap()` may need polyfills in older browsers
 
 </details>
 
